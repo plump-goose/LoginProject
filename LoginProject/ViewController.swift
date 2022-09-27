@@ -7,7 +7,8 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+// 더 이상 상속을 막는다.
+final class ViewController: UIViewController {
 
     //MARK: - 이메일 입력하는 텍스트뷰
     private lazy var emailTextFieldView : UIView = {
@@ -41,7 +42,7 @@ class ViewController: UIViewController {
         tf.autocorrectionType = .no
         tf.spellCheckingType = .no
         tf.keyboardType = .emailAddress
-//        tf.addTarget(self, action: #selector(textFieldEditingChanged(_:)), for: .editingChanged)
+        tf.addTarget(self, action: #selector(textFieldEditingChanged(_:)), for: .editingChanged)
         
         return tf
         
@@ -54,11 +55,10 @@ class ViewController: UIViewController {
         view.backgroundColor = #colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1)
         view.layer.cornerRadius = 5
         view.clipsToBounds = true
-        view.addSubview(passwordTextField)
         view.addSubview(passwordInfoLabel)
+        view.addSubview(passwordTextField)
         view.addSubview(passwordSecureButton)
        
-        
         return view
     }()
     
@@ -87,7 +87,7 @@ class ViewController: UIViewController {
         tf.isSecureTextEntry = true
         tf.clearsOnBeginEditing = false
         
-//        tf.addTarget(self, action: #selector(textFieldEditingChanged(_:)), for: .editingChanged)
+        tf.addTarget(self, action: #selector(textFieldEditingChanged(_:)), for: .editingChanged)
         
         return tf
         
@@ -115,7 +115,7 @@ class ViewController: UIViewController {
         button.setTitle("로그인", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
         button.isEnabled = false
-//        button.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         
         return button
     }()
@@ -142,14 +142,24 @@ class ViewController: UIViewController {
     }()
     
     
+    
     // 3개의 각 텍스트필드 및 로그인 버튼의 높이 설정
     private let textViewHeight : CGFloat = 48
     
+    // 오토레이아웃을 담을 수 있는 변수 선언
+    lazy var emailInfoLabelCenterYConstraint = emailInfoLabel.centerYAnchor.constraint(equalTo: emailTextFieldView.centerYAnchor)
     
+    lazy var passwordInfoLabelCenterYConstraint = passwordInfoLabel.centerYAnchor.constraint(equalTo: passwordTextFieldView.centerYAnchor)
     
+    //MARK: - View 화면 구성
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        
+        emailTextField.delegate = self
+        passwordTextField.delegate = self
+        
+        
         
         makeUI()
         
@@ -160,6 +170,9 @@ class ViewController: UIViewController {
     
     func makeUI() {
         view.backgroundColor = UIColor.black
+        
+        emailTextField.delegate = self
+        passwordTextField.delegate = self
         
         view.addSubview(stackView)
         view.addSubview(passwordResetButton)
@@ -174,7 +187,8 @@ class ViewController: UIViewController {
         NSLayoutConstraint.activate([
             emailInfoLabel.leadingAnchor.constraint(equalTo: emailTextFieldView.leadingAnchor,constant: 8),
             emailInfoLabel.trailingAnchor.constraint(equalTo: emailTextFieldView.trailingAnchor,constant: 8),
-            emailInfoLabel.centerYAnchor.constraint(equalTo: emailTextFieldView.centerYAnchor),
+//            emailInfoLabel.centerYAnchor.constraint(equalTo: emailTextFieldView.centerYAnchor),
+            emailInfoLabelCenterYConstraint,
             
             emailTextField.leadingAnchor.constraint(equalTo: emailTextFieldView.leadingAnchor,constant: 8),
             emailTextField.trailingAnchor.constraint(equalTo: emailTextFieldView.trailingAnchor, constant: 8),
@@ -183,12 +197,13 @@ class ViewController: UIViewController {
             
             passwordInfoLabel.leadingAnchor.constraint(equalTo: passwordTextFieldView.leadingAnchor,constant: 8),
             passwordInfoLabel.trailingAnchor.constraint(equalTo: passwordTextFieldView.trailingAnchor, constant: 8),
-            passwordInfoLabel.centerYAnchor.constraint(equalTo: passwordTextFieldView.centerYAnchor),
+//            passwordInfoLabel.centerYAnchor.constraint(equalTo: passwordTextFieldView.centerYAnchor),
+            passwordInfoLabelCenterYConstraint,
             
             
             passwordTextField.topAnchor.constraint(equalTo: passwordTextFieldView.topAnchor, constant: 15),
             passwordTextField.bottomAnchor.constraint(equalTo: passwordTextFieldView.bottomAnchor, constant: 2),
-            passwordTextFieldView.leadingAnchor.constraint(equalTo: passwordTextFieldView.leadingAnchor,constant: 8),
+            passwordTextField.leadingAnchor.constraint(equalTo: passwordTextFieldView.leadingAnchor,constant: 8),
             passwordTextField.trailingAnchor.constraint(equalTo: passwordTextFieldView.trailingAnchor, constant: 8),
             
             
@@ -229,6 +244,10 @@ class ViewController: UIViewController {
         passwordTextField.isSecureTextEntry.toggle()
     }
     
+    @objc func loginButtonTapped() {
+        print("로그인 버튼이 눌렸습니다.")
+    }
+    
     @objc func resetButtonTapped() {
 //        print("리셋 버튼이 눌렸습니다.")
         
@@ -248,19 +267,72 @@ class ViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    
-
-
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
+    }
 }
 
 extension ViewController : UITextFieldDelegate {
     
-//    func textFieldDidBeginEditing(_ textField: UITextField) {
-//        <#code#>
-//    }
-//    
-//    func textField
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        if textField == emailTextField {
+            emailTextFieldView.backgroundColor = #colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)
+            emailInfoLabel.font = UIFont.systemFont(ofSize: 11)
+            // 오토 레이아웃 업데이트
+            emailInfoLabelCenterYConstraint.constant = -13
+        
+        }
+        
+        if textField == passwordTextField {
+            passwordTextFieldView.backgroundColor = #colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)
+            passwordInfoLabel.font = UIFont.systemFont(ofSize: 11)
+            // 오토 레이아웃 업데이트
+            passwordInfoLabelCenterYConstraint.constant = -13
+        }
+        // 자연스럽게 애니메이션 그려주기
+        UIView.animate(withDuration: 0.3 ) {
+            self.stackView.layoutIfNeeded()
+        }
+    }
     
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        if textField == emailTextField {
+            emailTextFieldView.backgroundColor = #colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1)
+            // 빈칸이면 원래로 되돌리기
+            if emailTextField.text == "" {
+                emailInfoLabel.font = UIFont.systemFont(ofSize: 18)
+                emailInfoLabelCenterYConstraint.constant = 0
+            }
+        }
+        if textField == passwordTextField {
+            passwordTextFieldView.backgroundColor = #colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1)
+            if passwordTextField.text == "" {
+                passwordInfoLabel.font = UIFont.systemFont(ofSize: 18)
+                passwordInfoLabelCenterYConstraint.constant = 0
+            }
+        }
+        
+        UIView.animate(withDuration: 0.3 ) {
+            self.emailTextFieldView.layoutIfNeeded()
+            self.passwordTextFieldView.layoutIfNeeded()
+        }
+    }
+    
+    @objc func textFieldEditingChanged(_ textField:UITextField) {
+        if textField.text?.count == 1 {
+            if textField.text?.first == " " {
+                textField.text = ""
+                return
+            }
+        }
+        guard let email = emailTextField.text, !email.isEmpty, let password = passwordTextField.text, !password.isEmpty else {
+            loginButton.backgroundColor = .clear
+            loginButton.isEnabled = false
+            return
+        }
+        loginButton.backgroundColor = .red
+        loginButton.isEnabled = true
+    }
     
     
     
